@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elite Vehicle Desk • RTO Aggregation Hub</title>
-    <!-- Tailwind CSS Engine -->
+    <title>Elite Vehicle Desk • RTO Aggregation Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -25,8 +24,8 @@
                     keyframes: {
                         pulseShake: {
                             '0%, 100%': { transform: 'scale(1) rotate(0deg)' },
-                            '15%': { transform: 'scale(1.06) rotate(-3deg)' },
-                            '30%': { transform: 'scale(1.06) rotate(3deg)' },
+                            '15%': { transform: 'scale(1.05) rotate(-2deg)' },
+                            '30%': { transform: 'scale(1.05) rotate(2deg)' },
                             '45%': { transform: 'scale(1) rotate(0deg)' },
                         }
                     }
@@ -36,21 +35,20 @@
     </script>
     <style>
         .glass-panel {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(226, 232, 240, 0.8);
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(226, 232, 240, 0.85);
         }
         
         .number-plate-badge {
             background: linear-gradient(180deg, #fef08a 0%, #eab308 100%);
             border: 2px solid #0f172a;
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 3px 6px rgba(0,0,0,0.12);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 3px 6px rgba(0,0,0,0.12);
             font-family: 'Courier New', Courier, monospace;
             letter-spacing: 2px;
         }
 
-        /* Printable PDF Formatting Rules */
         @media print {
             @page {
                 size: A4 portrait;
@@ -76,23 +74,20 @@
                 box-shadow: none !important;
                 backdrop-filter: none !important;
             }
-            .grid {
-                display: grid !important;
-            }
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans antialiased selection:bg-brand-500 selection:text-white">
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans antialiased">
 
-    <!-- Top Executive Glassmorphic Header -->
+    <!-- Top Executive Header -->
     <header class="glass-panel sticky top-0 z-50 border-b border-slate-200/80 bg-white/80 no-print">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center space-x-3">
                 <div class="h-9 w-9 bg-brand-600 text-white rounded-lg flex items-center justify-center font-bold text-xl shadow-sm">
-                    🚗
+                    🚘
                 </div>
                 <div>
-                    <h1 class="font-extrabold text-slate-900 text-lg leading-tight tracking-tight">Elite Vehicle Desk</h1>
+                    <h1 class="font-black text-slate-900 text-lg leading-tight tracking-tight">Elite Vehicle Desk</h1>
                     <p class="text-xs text-slate-500 font-medium">Enterprise RTO Intelligence Hub</p>
                 </div>
             </div>
@@ -105,17 +100,17 @@
         </div>
     </header>
 
-    <!-- Main Workspace -->
+    <!-- Workspace -->
     <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 print-full-width">
         
-        <!-- Search Input Bar -->
+        <!-- Input Bar -->
         <section class="max-w-2xl mx-auto mb-8 no-print">
             <form id="searchForm" class="glass-panel p-3 rounded-2xl shadow-lg border border-slate-200/80 flex flex-col sm:flex-row gap-3">
                 <div class="relative flex-grow">
                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </div>
-                    <input type="text" id="vehicleInput" required placeholder="Enter Registration Number (e.g. DL01AB1234)" 
+                    <input type="text" id="vehicleInput" required placeholder="Enter Vehicle No. (e.g., DL01AB1234)" 
                            class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold uppercase tracking-wider text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all">
                 </div>
                 <button type="submit" id="searchBtn" class="bg-brand-600 hover:bg-brand-700 text-white font-bold px-6 py-3 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 whitespace-nowrap">
@@ -129,7 +124,7 @@
             <!-- Anti-Spam Progress & Cooldown Banner -->
             <div id="cooldownBanner" class="hidden mt-3 text-center text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2.5">
                 <div class="flex items-center justify-center gap-2">
-                    <span>⏳ Rate Limiter Active. Next request available in: <strong id="cooldownSeconds" class="text-amber-900">7</strong>s</span>
+                    <span>⏳ Anti-Spam Cooldown Active. Next request in: <strong id="cooldownSeconds" class="text-amber-900">7</strong>s</span>
                 </div>
                 <div class="w-full bg-amber-200 h-1.5 rounded-full mt-2 overflow-hidden">
                     <div id="cooldownBar" class="bg-amber-600 h-full w-full transition-all duration-1000 ease-linear"></div>
@@ -137,7 +132,7 @@
             </div>
         </section>
 
-        <!-- Animated Error State Card -->
+        <!-- Animated Warning Card -->
         <section id="errorCard" class="hidden max-w-lg mx-auto my-12 no-print">
             <div class="glass-panel p-8 rounded-2xl border-red-200/80 shadow-xl text-center bg-white/90">
                 <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 text-red-600 mb-4 animate-pulse-shake">
@@ -150,10 +145,10 @@
             </div>
         </section>
 
-        <!-- Modular 9-Box UI Grid Layout -->
+        <!-- Modular 9-Box Dashboard Grid -->
         <section id="dataGrid" class="hidden space-y-6">
             
-            <!-- BOX 1: Primary Vehicle Identity (HEADLINE CARD) -->
+            <!-- BOX 1: Primary Vehicle Identity -->
             <div class="glass-panel p-6 rounded-2xl shadow-sm border border-slate-200/80">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div class="flex items-center space-x-4">
@@ -265,7 +260,7 @@
 
             </div>
 
-            <!-- BOX 9: Additional Details (CATCH-ALL BOX FOR NON-STANDARD KEYS ONLY) -->
+            <!-- BOX 9: Additional Details (Catch-All for Non-Standard Attributes) -->
             <div id="additionalSpecsContainer" class="hidden glass-panel p-5 rounded-xl space-y-3">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider border-b pb-2 border-slate-100">📦 Additional Details</h3>
                 <div id="additionalSpecsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-xs"></div>
