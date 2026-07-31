@@ -2,13 +2,11 @@ import os
 import re
 import asyncio
 from typing import Dict, Any, List, Optional
-from datetime import datetime
+from dotenv import load_dotenv
 
 import httpx
-from dotenv import load_dotenv
 from fastapi import FastAPI, Request, Query
 from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -17,9 +15,9 @@ from slowapi.errors import RateLimitExceeded
 
 load_dotenv()
 
-# Rate Limiter setup
+# Initialize Rate Limiter
 limiter = Limiter(key_func=get_remote_address)
-app = FastAPI(title="Vehicle RTO Data Aggregation Engine")
+app = FastAPI(title="Elite Vehicle RTO Engine", version="2.0.0")
 app.state.limiter = limiter
 
 @app.exception_handler(RateLimitExceeded)
@@ -34,6 +32,7 @@ async def custom_rate_limit_handler(request: Request, exc: RateLimitExceeded):
 
 templates = Jinja2Templates(directory="templates")
 
+# Default API URL Endpoints
 DEFAULT_URL_1 = "https://unsalubriously-unfragrant-rosetta.ngrok-free.dev/api/vehicle-details-only?regn_no={VEHICLE_NO}"
 DEFAULT_URL_2 = "https://randkikichut.vercel.app/?vehicle_number={VEHICLE_NO}"
 DEFAULT_URL_3 = "https://cjpen.vercel.app/vehicle/{VEHICLE_NO}"
@@ -53,34 +52,93 @@ def get_api_urls(vehicle_no: str) -> List[str]:
         u4.format(VEHICLE_NO=v_no),
     ]
 
-def clean_key(key: str) -> str:
-    """Normalizes key strings for mapping comparisons."""
-    return re.sub(r'[^a-zA-Z0-9]', '', str(key)).lower()
+# Normalization & Key Extraction Utilities
+def normalize_key(key: str) -> str:
+    """Strips spaces and special characters to convert keys into clean snake_case format."""
+    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', str(key))
+    s2 = re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+    return re.sub(r'[^a-z0-9_]', '', s2).strip('_')
 
-def safe_get(data: Any, keys: List[str], default=None) -> Any:
-    """Recursively or dynamically searches for a key in dictionary payloads."""
-    if not isinstance(data, dict):
-        return default
-    
-    normalized_data = {clean_key(k): v for k, v in data.items()}
-    for k in keys:
-        norm_k = clean_key(k)
-        if norm_k in normalized_data and normalized_data[norm_k] not in [None, "", "N/A", "null"]:
-            val = normalized_data[norm_k]
-            if isinstance(val, dict):
-                return val
-            return str(val).strip()
-    return default
+# Alias Definitions for Mandatory Box Mapping
+ALIAS_MAP = {
+    "vehicle_number": ["vehicle_number", "regn_no", "registration_no", "rc_regn_no", "reg_no", "vehicleno"],
+    "maker": ["maker", "maker_description", "manufacturer", "make", "maker_name"],
+    "model": ["model", "maker_model", "model_name", "vehicle_model"],
+    "variant": ["variant", "vehicle_variant", "sub_model"],
+    "fuel_type": ["fuel_type", "fuel", "fuel_desc", "fuel_type_descr"],
+    "emission_norms": ["emission_norms", "norms_type", "norms", "norms_desc"],
+    "owner_name": ["owner_name", "owner", "registered_owner_name", "owner_name_vahan", "current_owner"],
+    "father_name": ["father_name", "father_husband_name", "f_name", "care_of", "husband_name"],
+    "owner_serial": ["owner_serial", "owner_count", "owner_number", "owner_seq", "owner_sr"],
+    "nominee": ["nominee", "nominee_name", "nominee_details"],
+    "address": ["present_address", "permanent_address", "address", "owner_address", "full_address", "main_address"],
+    "chassis_number": ["chassis_number", "chassis_no", "chassis"],
+    "engine_number": ["engine_number", "engine_no", "engine"],
+    "cubic_capacity": ["cubic_capacity", "engine_cc", "cc", "cubic_cap"],
+    "unladen_weight": ["unladen_weight", "weight", "vehicle_weight"],
+    "vehicle_color": ["vehicle_color", "color", "colour"],
+    "vehicle_class": ["vehicle_class", "class", "vehicle_type", "category"],
+    "financer_name": ["financer", "financer_name", "hypothecation_details", "bank_name", "financed_by"],
+    "rto_name": ["rto_name", "registering_authority", "rto", "registered_at", "rto_code"],
+    "registration_date": ["registration_date", "regn_dt", "reg_date", "rc_regn_dt", "registered_date"],
+    "mfg_date": ["mfg_date", "manufacturing_year", "mfg_year", "manu_month_yr", "manufacturing_date"],
+    "rc_expiry": ["rc_expiry", "fit_upto", "rc_valid_upto", "rc_expiry_date", "rc_validity"],
+    "tax_expiry": ["tax_expiry", "tax_upto", "tax_valid_upto"],
+    "puc_number": ["puc_number", "puc_no", "puc_certificate_no", "pucc_no"],
+    "puc_expiry": ["puc_expiry", "puc_upto", "puc_valid_upto"],
+    "insurance_company": ["insurance_company", "insurance_co", "insurance_comp", "insurance_name", "insurer"],
+    "policy_number": ["policy_number", "insurance_policy_no", "policy_no"],
+    "policy_expiry": ["policy_expiry", "insurance_upto", "insurance_valid_upto", "insurance_expiry"],
+    "prev_ncb": ["prev_ncb", "ncb", "no_claim_bonus"]
+}
 
-def extract_owner_serial(data: dict) -> int:
-    val = safe_get(data, ["ownerSerial", "owner_serial", "ownerCount", "owner_number", "owner_seq"])
+# Reverse Mapping Set to isolate non-standard keys for Box 9
+ALL_MAPPED_NORM_KEYS = set()
+for aliases in ALIAS_MAP.values():
+    for alias in aliases:
+        ALL_MAPPED_NORM_KEYS.add(normalize_key(alias))
+
+def extract_flat_dict(raw_json: Any, parent_key: str = '') -> Dict[str, Any]:
+    """Recursively flattens nested dictionaries while preserving path contexts."""
+    items: List[tuple] = []
+    if isinstance(raw_json, dict):
+        for k, v in raw_json.items():
+            new_key = f"{parent_key}_{k}" if parent_key else k
+            if isinstance(v, dict):
+                items.extend(extract_flat_dict(v, new_key).items())
+            elif isinstance(v, list):
+                for idx, item in enumerate(v):
+                    if isinstance(item, dict):
+                        items.extend(extract_flat_dict(item, f"{new_key}_{idx}").items())
+            else:
+                items.append((new_key, v))
+    return dict(items)
+
+def extract_field_value(flat_responses: List[Dict[str, Any]], field_key: str) -> str:
+    """Searches across all flattened responses for the best non-null value matching aliases."""
+    aliases = ALIAS_MAP.get(field_key, [])
+    candidates = []
+
+    for flat_dict in flat_responses:
+        for orig_key, val in flat_dict.items():
+            norm_k = normalize_key(orig_key)
+            if any(norm_k == normalize_key(alias) or norm_k.endswith(f"_{normalize_key(alias)}") for alias in aliases):
+                if val not in [None, "", "N/A", "null", "None", "-"]:
+                    candidates.append(str(val).strip())
+
+    if not candidates:
+        return "N/A"
+
+    # Deduplication & richness check: select longest non-duplicate string
+    candidates = list(dict.fromkeys(candidates))
+    candidates.sort(key=len, reverse=True)
+    return candidates[0]
+
+def parse_owner_serial(val: Any) -> int:
     if val:
-        try:
-            nums = re.findall(r'\d+', str(val))
-            if nums:
-                return int(nums[0])
-        except Exception:
-            pass
+        nums = re.findall(r'\d+', str(val))
+        if nums:
+            return int(nums[0])
     return 1
 
 async def fetch_api(client: httpx.AsyncClient, url: str) -> Optional[dict]:
@@ -99,165 +157,116 @@ def merge_rto_data(responses: List[dict], vehicle_no: str) -> Optional[dict]:
     if not valid_responses:
         return None
 
-    # Track used raw key-value pairs across sources for catch-all extraction
-    tracked_used_keys = set()
-    
-    # 1. Owner & Address Sorting Strategy
+    flat_responses = [extract_flat_dict(resp) for resp in valid_responses]
+
+    # Owner & Address Strategy
     owner_records = []
-    for resp in valid_responses:
-        # Check root or nested data dicts
-        target = resp.get("data", resp) if isinstance(resp.get("data"), dict) else resp
+    for flat_dict in flat_responses:
+        owner_ser_val = None
+        for k, v in flat_dict.items():
+            if normalize_key(k) in [normalize_key(a) for a in ALIAS_MAP["owner_serial"]]:
+                owner_ser_val = v
+                break
         
-        ser = extract_owner_serial(target)
-        addr = safe_get(target, ["presentAddress", "permanentAddress", "address", "mainAddress", "ownerAddress", "fullAddress"])
+        addr_val = None
+        for k, v in flat_dict.items():
+            if normalize_key(k) in [normalize_key(a) for a in ALIAS_MAP["address"]]:
+                if v not in [None, "", "N/A", "null"]:
+                    addr_val = str(v).strip()
+                    break
+
         owner_records.append({
-            "owner_serial": ser,
-            "address": addr,
-            "data": target
+            "owner_serial": parse_owner_serial(owner_ser_val),
+            "address": addr_val
         })
-    
+
     max_owner_serial = max([r["owner_serial"] for r in owner_records]) if owner_records else 1
     highest_owner_records = [r for r in owner_records if r["owner_serial"] == max_owner_serial]
-    
-    # Select longest address from highest owner serial
-    main_address = None
+
+    main_address = "N/A"
     longest_len = -1
     for rec in highest_owner_records:
         if rec["address"]:
-            if len(str(rec["address"])) > longest_len:
-                longest_len = len(str(rec["address"]))
-                main_address = str(rec["address"])
-                
-    # Collect all distinct addresses
+            if len(rec["address"]) > longest_len:
+                longest_len = len(rec["address"])
+                main_address = rec["address"]
+
     all_addresses = []
     for rec in owner_records:
-        if rec["address"] and str(rec["address"]) not in all_addresses:
-            all_addresses.append(str(rec["address"]))
+        if rec["address"] and rec["address"] != main_address and rec["address"] not in all_addresses:
+            all_addresses.append(rec["address"])
 
-    # Helper function for best value selection
-    def pick_first(keys: List[str]) -> str:
-        for rec in owner_records:
-            val = safe_get(rec["data"], keys)
-            if val is not None:
-                return str(val)
-        return "N/A"
-
-    # Identity Details
-    reg_no = vehicle_no.upper()
-    maker = pick_first(["makerDescription", "maker", "manufacturer", "make", "maker_name"])
-    model = pick_first(["makerModel", "model", "modelName", "vehicleModel"])
-    variant = pick_first(["variant", "vehicleVariant", "subModel"])
-    fuel_type = pick_first(["fuelType", "fuel", "fuel_desc"])
-    emission_norms = pick_first(["normsType", "emissionNorms", "norms", "normsDesc"])
-
-    # Owner & Financer Details
-    owner_name = pick_first(["ownerName", "owner", "currentOwner", "registeredOwner"])
-    father_name = pick_first(["fatherName", "fatherHusbandName", "husbandName"])
-    nominee = pick_first(["nomineeName", "nominee", "nominee_details"])
-    financer = pick_first(["financer", "hypothecationDetails", "bankName", "financedBy"])
+    # Extract Primary Fields
+    financer = extract_field_value(flat_responses, "financer_name")
     is_financed = "YES (FINANCED)" if financer != "N/A" and financer != "" else "NO / UNFINANCED"
 
-    # Technical Specs
-    chassis = pick_first(["chassisNumber", "chassisNo", "chassis"])
-    engine = pick_first(["engineNumber", "engineNo", "engine"])
-    cubic_capacity = pick_first(["cubicCapacity", "engineCC", "cc", "cubic_capacity"])
-    unladen_weight = pick_first(["unladenWeight", "weight", "vehicleWeight"])
-    color = pick_first(["vehicleColor", "color", "colour"])
-    v_class = pick_first(["vehicleClass", "class", "vehicleType", "category"])
-
-    # RC Compliance & Validity
-    rto_name = pick_first(["registeringAuthority", "rto", "rtoName", "registeredAt"])
-    reg_date = pick_first(["registrationDate", "regDate", "registeredDate"])
-    mfg_date = pick_first(["manufacturingYear", "mfgYear", "manuMonthYr", "manufacturingDate"])
-    rc_expiry = pick_first(["fitUpto", "rcValidUpto", "rcExpiryDate", "rcValidity"])
-    tax_expiry = pick_first(["taxUpto", "taxValidUpto", "taxExpiry"])
-
-    # Insurance & PUC
-    insurance_co = pick_first(["insuranceCompany", "insuranceComp", "insuranceName", "insurer"])
-    policy_no = pick_first(["insurancePolicyNo", "policyNumber", "policyNo"])
-    insurance_upto = pick_first(["insuranceUpto", "insuranceValidUpto", "insuranceExpiry"])
-    prev_ncb = pick_first(["prevNcb", "ncb", "noClaimBonus"])
-
-    puc_no = pick_first(["pucNumber", "pucNo", "pucCertificateNo"])
-    puc_upto = pick_first(["pucUpto", "pucValidUpto", "pucExpiry"])
-
-    # Catch-all extraction: gather any extra key-value pairs not covered above
-    mapped_keys_norm = {
-        "regnno", "vehiclenumber", "registrationno", "makerdescription", "maker", "manufacturer",
-        "makermodel", "model", "modelname", "variant", "fueltype", "fuel", "normstype", "emissionnorms",
-        "ownername", "owner", "fathername", "fatherhusbandname", "ownerserial", "nomineename", "nominee",
-        "financer", "hypothecationdetails", "chassisnumber", "chassisno", "enginenumber", "engineno",
-        "cubiccapacity", "enginecc", "unladenweight", "vehiclecolor", "color", "vehicleclass", "class",
-        "registeringauthority", "rto", "rtoname", "registrationdate", "regdate", "manufacturingyear",
-        "mfgyear", "fitupto", "rcvalidupto", "taxupto", "insurancecompany", "insurancepolicyno",
-        "insuranceupto", "prevncb", "pucnumber", "pucupto", "presentaddress", "permanentaddress", "address",
-        "mainaddress", "owneraddress", "fulladdress", "data", "status", "success", "message"
-    }
-
+    # Catch-All Box 9 Processing (Strictly Non-Standard Keys Only)
     additional_specs = {}
+    for flat_dict in flat_responses:
+        for orig_key, val in flat_dict.items():
+            norm_k = normalize_key(orig_key)
+            
+            # Check if key is already handled in Boxes 1 through 8
+            is_mapped = False
+            for mapped_key in ALL_MAPPED_NORM_KEYS:
+                if norm_k == mapped_key or norm_k.endswith(f"_{mapped_key}"):
+                    is_mapped = True
+                    break
 
-    def extract_extra_fields(obj, prefix=""):
-        if isinstance(obj, dict):
-            for k, v in obj.items():
-                norm_k = clean_key(k)
-                if norm_k not in mapped_keys_norm:
-                    if isinstance(v, (dict, list)):
-                        extract_extra_fields(v, prefix=f"{k} ")
-                    elif v not in [None, "", "N/A", "null"]:
-                        formatted_key = f"{prefix}{k}".replace("_", " ").title()
-                        additional_specs[formatted_key] = str(v)
+            if not is_mapped and val not in [None, "", "N/A", "null", "None", "-"]:
+                formatted_label = orig_key.replace("_", " ").replace(".", " ").title()
+                # Clean up nested path prefixes
+                formatted_label = re.sub(r'^\d+\s*', '', formatted_label).strip()
+                if formatted_label not in additional_specs:
+                    additional_specs[formatted_label] = str(val).strip()
 
-    for resp in valid_responses:
-        extract_extra_fields(resp)
-
-    # Final Consolidated Master JSON Payload
     master_payload = {
         "primary_identity": {
-            "vehicle_number": reg_no,
-            "maker": maker,
-            "model": model,
-            "variant": variant,
-            "fuel_type": fuel_type,
-            "emission_norms": emission_norms
+            "vehicle_number": vehicle_no.upper(),
+            "maker": extract_field_value(flat_responses, "maker"),
+            "model": extract_field_value(flat_responses, "model"),
+            "variant": extract_field_value(flat_responses, "variant"),
+            "fuel_type": extract_field_value(flat_responses, "fuel_type"),
+            "emission_norms": extract_field_value(flat_responses, "emission_norms")
         },
         "owner_details": {
-            "owner_name": owner_name,
-            "father_husband_name": father_name,
+            "owner_name": extract_field_value(flat_responses, "owner_name"),
+            "father_husband_name": extract_field_value(flat_responses, "father_name"),
             "owner_serial": str(max_owner_serial),
-            "nominee": nominee
+            "nominee": extract_field_value(flat_responses, "nominee")
         },
         "address_details": {
-            "main_address": main_address or "N/A",
-            "all_addresses": all_addresses if len(all_addresses) > 1 else []
+            "main_address": main_address,
+            "all_addresses": all_addresses
         },
         "technical_specs": {
-            "chassis_number": chassis,
-            "engine_number": engine,
-            "cubic_capacity": cubic_capacity,
-            "unladen_weight": unladen_weight,
-            "vehicle_color": color,
-            "vehicle_class": v_class
+            "chassis_number": extract_field_value(flat_responses, "chassis_number"),
+            "engine_number": extract_field_value(flat_responses, "engine_number"),
+            "cubic_capacity": extract_field_value(flat_responses, "cubic_capacity"),
+            "unladen_weight": extract_field_value(flat_responses, "unladen_weight"),
+            "vehicle_color": extract_field_value(flat_responses, "vehicle_color"),
+            "vehicle_class": extract_field_value(flat_responses, "vehicle_class")
         },
         "financed_status": {
             "is_financed": is_financed,
             "financer_name": financer
         },
         "rc_compliance": {
-            "rto_name": rto_name,
-            "registration_date": reg_date,
-            "mfg_date": mfg_date,
-            "rc_expiry": rc_expiry,
-            "tax_expiry": tax_expiry
+            "rto_name": extract_field_value(flat_responses, "rto_name"),
+            "registration_date": extract_field_value(flat_responses, "registration_date"),
+            "mfg_date": extract_field_value(flat_responses, "mfg_date"),
+            "rc_expiry": extract_field_value(flat_responses, "rc_expiry"),
+            "tax_expiry": extract_field_value(flat_responses, "tax_expiry")
         },
         "puc_details": {
-            "puc_number": puc_no,
-            "puc_expiry": puc_upto
+            "puc_number": extract_field_value(flat_responses, "puc_number"),
+            "puc_expiry": extract_field_value(flat_responses, "puc_expiry")
         },
         "insurance_details": {
-            "company_name": insurance_co,
-            "policy_number": policy_no,
-            "policy_expiry": insurance_upto,
-            "prev_ncb": prev_ncb
+            "company_name": extract_field_value(flat_responses, "insurance_company"),
+            "policy_number": extract_field_value(flat_responses, "policy_number"),
+            "policy_expiry": extract_field_value(flat_responses, "policy_expiry"),
+            "prev_ncb": extract_field_value(flat_responses, "prev_ncb")
         },
         "additional_specs": additional_specs
     }
@@ -266,7 +275,7 @@ def merge_rto_data(responses: List[dict], vehicle_no: str) -> Optional[dict]:
 
 @app.get("/", response_class=HTMLResponse)
 async def index_page(request: Request):
-    return templates.TemplateResponse(request=request, name="index.html")
+    return templates.TemplateResponse("index.html", {"request": request})
 
 @app.get("/api/aggregate")
 @limiter.limit("5/minute")
@@ -285,7 +294,7 @@ async def aggregate_vehicle_data(request: Request, vehicle_no: str = Query(..., 
             status_code=404,
             content={
                 "status": "error",
-                "message": "Details Not Found. Unable to retrieve vehicle information from RTO databases."
+                "message": "Details Not Found. Unable to retrieve vehicle details from RTO databases."
             }
         )
         
