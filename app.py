@@ -253,7 +253,7 @@ def merge_rto_data(responses: List[dict], vehicle_no: str) -> Optional[dict]:
 
 @app.get("/", response_class=HTMLResponse)
 async def index_page(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(request=request, name="index.html")
 
 @app.get("/api/aggregate")
 @limiter.limit("5/minute")
