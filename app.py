@@ -9,30 +9,20 @@ from fastapi import FastAPI, Request, Query
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 
-from slowapi import Limiter
+from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 load_dotenv()
 
-# Rate Limiter setup: 5 requests per minute per IP
+# Rate Limiter setup
 limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(title="Elite Vehicle Desk Engine", version="2.0.0")
 app.state.limiter = limiter
-
-@app.exception_handler(RateLimitExceeded)
-async def custom_rate_limit_handler(request: Request, exc: RateLimitExceeded):
-    return JSONResponse(
-        status_code=429,
-        content={
-            "status": "error",
-            "message": "Too Many Requests. You can only make 5 requests per minute."
-        }
-    )
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 templates = Jinja2Templates(directory="templates")
 
-# Default API endpoints with fallback handling
 DEFAULT_URL_1 = "https://unsalubriously-unfragrant-rosetta.ngrok-free.dev/api/vehicle-details-only?regn_no={VEHICLE_NO}"
 DEFAULT_URL_2 = "https://randkikichut.vercel.app/?vehicle_number={VEHICLE_NO}"
 DEFAULT_URL_3 = "https://cjpen.vercel.app/vehicle/{VEHICLE_NO}"
@@ -52,14 +42,11 @@ def get_api_urls(vehicle_no: str) -> List[str]:
         u4.format(VEHICLE_NO=v_no),
     ]
 
-# Normalization & Key Standardization Pipeline
 def normalize_key(key: str) -> str:
-    """Strips spaces and special characters to convert keys into clean snake_case format."""
     s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', str(key))
     s2 = re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
     return re.sub(r'[^a-z0-9_]', '', s2).strip('_')
 
-# Alias Definitions for Mandatory Box Mapping
 ALIAS_MAP = {
     "vehicle_number": ["vehicle_number", "regn_no", "registration_no", "rc_regn_no", "reg_no", "vehicleno"],
     "maker": ["maker", "maker_description", "manufacturer", "make", "maker_name"],
@@ -92,14 +79,12 @@ ALIAS_MAP = {
     "prev_ncb": ["prev_ncb", "ncb", "no_claim_bonus"]
 }
 
-# Aggregate set of mapped keys to prevent duplicate routing into Box 9
 ALL_MAPPED_NORM_KEYS = set()
 for aliases in ALIAS_MAP.values():
     for alias in aliases:
         ALL_MAPPED_NORM_KEYS.add(normalize_key(alias))
 
 def extract_flat_dict(raw_json: Any, parent_key: str = '') -> Dict[str, Any]:
-    """Flattens nested JSON hierarchies safely."""
     items: List[tuple] = []
     if isinstance(raw_json, dict):
         for k, v in raw_json.items():
@@ -115,7 +100,6 @@ def extract_flat_dict(raw_json: Any, parent_key: str = '') -> Dict[str, Any]:
     return dict(items)
 
 def extract_field_value(flat_responses: List[Dict[str, Any]], field_key: str) -> str:
-    """Finds non-null values matching aliases and selects the longest, richest string."""
     aliases = ALIAS_MAP.get(field_key, [])
     candidates = []
 
@@ -129,7 +113,6 @@ def extract_field_value(flat_responses: List[Dict[str, Any]], field_key: str) ->
     if not candidates:
         return "N/A"
 
-    # Deduplicate and prioritize non-empty, rich strings
     candidates = list(dict.fromkeys(candidates))
     candidates.sort(key=len, reverse=True)
     return candidates[0]
@@ -159,7 +142,6 @@ def merge_rto_data(responses: List[dict], vehicle_no: str) -> Optional[dict]:
 
     flat_responses = [extract_flat_dict(resp) for resp in valid_responses]
 
-    # Owner & Address Normalization Strategy
     owner_records = []
     for flat_dict in flat_responses:
         owner_ser_val = None
@@ -196,11 +178,9 @@ def merge_rto_data(responses: List[dict], vehicle_no: str) -> Optional[dict]:
         if rec["address"] and rec["address"] != main_address and rec["address"] not in all_addresses:
             all_addresses.append(rec["address"])
 
-    # Determine Finance Status
     financer = extract_field_value(flat_responses, "financer_name")
     is_financed = "YES (FINANCED)" if financer != "N/A" and financer != "" else "NO / UNFINANCED"
 
-    # Box 9 Strategy: Strictly Non-Standard Keys Only
     additional_specs = {}
     for flat_dict in flat_responses:
         for orig_key, val in flat_dict.items():
