@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elite Vehicle Desk • RTO Aggregation Engine</title>
+    <title>Elite Vehicle Desk • Executive RTO Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -50,24 +50,7 @@
         }
 
         @media print {
-            @page {
-                size: A4 portrait;
-                margin: 10mm;
-            }
-            body {
-                background: white !important;
-                color: black !important;
-                font-size: 10pt;
-            }
-            .no-print {
-                display: none !important;
-            }
-            .print-full-width {
-                width: 100% !important;
-                max-width: 100% !important;
-                margin: 0 !important;
-                padding: 0 !important;
-            }
+            .no-print { display: none !important; }
             .glass-panel {
                 background: white !important;
                 border: 1px solid #cbd5e1 !important;
@@ -79,7 +62,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans antialiased">
 
-    <!-- Top Executive Header -->
+    <!-- Executive Glassmorphic Header -->
     <header class="glass-panel sticky top-0 z-50 border-b border-slate-200/80 bg-white/80 no-print">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center space-x-3">
@@ -94,16 +77,16 @@
             <div id="printActionBtnContainer" class="hidden">
                 <button onclick="window.print()" class="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow transition-all duration-150">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                    Print / Export A4 PDF
+                    Print / Export PDF
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- Workspace -->
-    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 print-full-width">
+    <!-- Main Workspace -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
-        <!-- Input Bar -->
+        <!-- Search Bar Component -->
         <section class="max-w-2xl mx-auto mb-8 no-print">
             <form id="searchForm" class="glass-panel p-3 rounded-2xl shadow-lg border border-slate-200/80 flex flex-col sm:flex-row gap-3">
                 <div class="relative flex-grow">
@@ -132,7 +115,7 @@
             </div>
         </section>
 
-        <!-- Animated Warning Card -->
+        <!-- Animated Error State Modal Card -->
         <section id="errorCard" class="hidden max-w-lg mx-auto my-12 no-print">
             <div class="glass-panel p-8 rounded-2xl border-red-200/80 shadow-xl text-center bg-white/90">
                 <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 text-red-600 mb-4 animate-pulse-shake">
@@ -140,15 +123,15 @@
                 </div>
                 <h2 class="text-xl font-black text-slate-900 tracking-tight mb-2">Details Not Found</h2>
                 <p id="errorMessage" class="text-sm text-slate-600 leading-relaxed">
-                    Unable to retrieve vehicle details from RTO databases. Please verify the vehicle registration number.
+                    Unable to retrieve vehicle information from RTO databases. Please check the registration number and try again.
                 </p>
             </div>
         </section>
 
-        <!-- Modular 9-Box Dashboard Grid -->
+        <!-- Modular 8-Box Dashboard Grid -->
         <section id="dataGrid" class="hidden space-y-6">
             
-            <!-- BOX 1: Primary Vehicle Identity -->
+            <!-- BOX 1: Primary Identity & Fuel Card -->
             <div class="glass-panel p-6 rounded-2xl shadow-sm border border-slate-200/80">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div class="flex items-center space-x-4">
@@ -162,8 +145,7 @@
                     </div>
                     <div class="flex items-center gap-2">
                         <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                            <svg class="w-3.5 h-3.5 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm3 5a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
-                            <span id="res_fuel_type">--</span>
+                            ⛽ <span id="res_fuel_type">--</span>
                         </span>
                         <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-brand-50 text-brand-700 border border-brand-200">
                             🌿 <span id="res_emission_norms">--</span>
@@ -172,7 +154,7 @@
                 </div>
             </div>
 
-            <!-- Structured Grid Boxes 2 to 8 -->
+            <!-- Structured Grid (Boxes 2 to 7) -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 
                 <!-- BOX 2: Owner Details -->
@@ -196,7 +178,7 @@
                         </div>
                         <div id="altAddressContainer" class="hidden border-t border-slate-100 pt-2 mt-2">
                             <button onclick="toggleAltAddresses()" class="text-xs font-bold text-brand-600 hover:text-brand-700 flex items-center gap-1 no-print">
-                                <span>View Mapped Alternate Addresses</span>
+                                <span id="altAddrBtnText">View Alternate/Previous Addresses</span>
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                             </button>
                             <div id="altAddressesList" class="hidden space-y-1.5 mt-2 text-xs text-slate-600 bg-slate-50 p-2 rounded-lg border"></div>
@@ -210,7 +192,7 @@
                     <div class="space-y-2 text-sm">
                         <div class="flex justify-between"><span class="text-slate-500">Chassis No</span><span id="res_chassis_number" class="font-mono text-xs font-semibold text-slate-900">--</span></div>
                         <div class="flex justify-between"><span class="text-slate-500">Engine No</span><span id="res_engine_number" class="font-mono text-xs font-semibold text-slate-900">--</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">Cubic Capacity</span><span id="res_cubic_capacity" class="font-medium text-slate-800">--</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">Engine Capacity</span><span id="res_cubic_capacity" class="font-medium text-slate-800">--</span></div>
                         <div class="flex justify-between"><span class="text-slate-500">Unladen Weight</span><span id="res_unladen_weight" class="font-medium text-slate-800">--</span></div>
                         <div class="flex justify-between"><span class="text-slate-500">Vehicle Color</span><span id="res_vehicle_color" class="font-medium text-slate-800">--</span></div>
                         <div class="flex justify-between"><span class="text-slate-500">Vehicle Class</span><span id="res_vehicle_class" class="font-medium text-slate-800">--</span></div>
@@ -233,34 +215,26 @@
                         <div class="flex justify-between"><span class="text-slate-500">RTO Authority</span><span id="res_rto_name" class="font-medium text-slate-800">--</span></div>
                         <div class="flex justify-between"><span class="text-slate-500">Registration Date</span><span id="res_registration_date" class="font-medium text-slate-800">--</span></div>
                         <div class="flex justify-between"><span class="text-slate-500">Mfg Month/Year</span><span id="res_mfg_date" class="font-medium text-slate-800">--</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">RC Expiry Date</span><span id="res_rc_expiry" class="font-bold">--</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">Tax Valid Upto</span><span id="res_tax_expiry" class="font-bold">--</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">RC Expiry Date</span><span id="res_rc_expiry">--</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">Tax Valid Upto</span><span id="res_tax_expiry">--</span></div>
                     </div>
                 </div>
 
-                <!-- BOX 7: PUC Details -->
+                <!-- BOX 7: Insurance & PUC Details -->
                 <div class="glass-panel p-5 rounded-xl space-y-3">
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider border-b pb-2 border-slate-100">🟢 PUC (Pollution) Details</h3>
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider border-b pb-2 border-slate-100">🛡️ Insurance & PUC Coverage</h3>
                     <div class="space-y-2 text-sm">
+                        <div class="flex justify-between"><span class="text-slate-500">Insurer</span><span id="res_insurance_company" class="font-semibold text-slate-900">--</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">Policy No</span><span id="res_policy_number" class="font-mono text-xs font-semibold text-slate-900">--</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">Insurance Expiry</span><span id="res_policy_expiry">--</span></div>
                         <div class="flex justify-between"><span class="text-slate-500">PUC Certificate No</span><span id="res_puc_number" class="font-mono text-xs font-semibold text-slate-900">--</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">PUC Expiry Date</span><span id="res_puc_expiry" class="font-bold">--</span></div>
-                    </div>
-                </div>
-
-                <!-- BOX 8: Insurance Details -->
-                <div class="glass-panel p-5 rounded-xl space-y-3 md:col-span-2 lg:col-span-3">
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider border-b pb-2 border-slate-100">🛡️ Insurance Coverage</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
-                        <div><span class="text-slate-500 text-xs block">Company Name</span><span id="res_insurance_company" class="font-semibold text-slate-900">--</span></div>
-                        <div><span class="text-slate-500 text-xs block">Policy Number</span><span id="res_policy_number" class="font-mono text-xs font-semibold text-slate-900">--</span></div>
-                        <div><span class="text-slate-500 text-xs block">Policy Expiry</span><span id="res_policy_expiry" class="font-bold">--</span></div>
-                        <div><span class="text-slate-500 text-xs block">Previous NCB %</span><span id="res_prev_ncb" class="font-medium text-slate-800">--</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">PUC Expiry Date</span><span id="res_puc_expiry">--</span></div>
                     </div>
                 </div>
 
             </div>
 
-            <!-- BOX 9: Additional Details (Catch-All for Non-Standard Attributes) -->
+            <!-- BOX 8: Additional Details (Strict Catch-All for Non-Standard Attributes) -->
             <div id="additionalSpecsContainer" class="hidden glass-panel p-5 rounded-xl space-y-3">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider border-b pb-2 border-slate-100">📦 Additional Details</h3>
                 <div id="additionalSpecsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-xs"></div>
@@ -287,7 +261,7 @@
         </div>
     </footer>
 
-    <!-- Client Script Engine -->
+    <!-- Client Interactive Logic -->
     <script>
         let isCooldown = false;
 
@@ -313,7 +287,7 @@
                     showElement('dataGrid');
                     showElement('printActionBtnContainer');
                 } else {
-                    document.getElementById('errorMessage').innerText = result.message || "Unable to retrieve vehicle details.";
+                    document.getElementById('errorMessage').innerText = result.message || "Unable to retrieve vehicle information from RTO databases. Please check the registration number and try again.";
                     showElement('errorCard');
                 }
             } catch (err) {
@@ -325,31 +299,32 @@
         });
 
         function renderVehicleData(data) {
-            // Identity
+            // Box 1: Primary Identity
             setText('res_vehicle_number', data.primary_identity.vehicle_number);
             setText('res_make_model', `${data.primary_identity.maker} ${data.primary_identity.model}`);
             setText('res_variant', data.primary_identity.variant !== 'N/A' ? data.primary_identity.variant : '');
             setText('res_fuel_type', data.primary_identity.fuel_type);
             setText('res_emission_norms', data.primary_identity.emission_norms);
 
-            // Owner Details (Father Name Strictly Here)
+            // Box 2: Owner Details
             setText('res_owner_name', data.owner_details.owner_name);
             setText('res_father_name', data.owner_details.father_husband_name);
             setText('res_owner_serial', data.owner_details.owner_serial);
             setText('res_nominee', data.owner_details.nominee);
 
-            // Address Details
+            // Box 3: Address Details
             setText('res_main_address', data.address_details.main_address);
             const altAddrs = data.address_details.all_addresses;
             if (altAddrs && altAddrs.length > 0) {
                 showElement('altAddressContainer');
+                document.getElementById('altAddrBtnText').innerText = `View Alternate/Previous Addresses (${altAddrs.length})`;
                 const list = document.getElementById('altAddressesList');
                 list.innerHTML = altAddrs.map((a, idx) => `<div class="p-1.5 bg-white rounded border"><strong>Alt Address ${idx+1}:</strong> ${a}</div>`).join('');
             } else {
                 hideElement('altAddressContainer');
             }
 
-            // Specs
+            // Box 4: Technical Specs
             setText('res_chassis_number', data.technical_specs.chassis_number);
             setText('res_engine_number', data.technical_specs.engine_number);
             setText('res_cubic_capacity', data.technical_specs.cubic_capacity);
@@ -357,28 +332,25 @@
             setText('res_vehicle_color', data.technical_specs.vehicle_color);
             setText('res_vehicle_class', data.technical_specs.vehicle_class);
 
-            // Finance
+            // Box 5: Financed Status
             setText('res_is_financed', data.financed_status.is_financed);
             setText('res_financer_name', data.financed_status.financer_name);
 
-            // RC Compliance & Expiries
+            // Box 6: RC Compliance
             setText('res_rto_name', data.rc_compliance.rto_name);
             setText('res_registration_date', data.rc_compliance.registration_date);
             setText('res_mfg_date', data.rc_compliance.mfg_date);
-            renderDateWithHighlight('res_rc_expiry', data.rc_compliance.rc_expiry);
-            renderDateWithHighlight('res_tax_expiry', data.rc_compliance.tax_expiry);
+            renderDateBadge('res_rc_expiry', data.rc_compliance.rc_expiry);
+            renderDateBadge('res_tax_expiry', data.rc_compliance.tax_expiry);
 
-            // PUC
-            setText('res_puc_number', data.puc_details.puc_number);
-            renderDateWithHighlight('res_puc_expiry', data.puc_details.puc_expiry);
+            // Box 7: Insurance & PUC Details
+            setText('res_insurance_company', data.insurance_puc_details.company_name);
+            setText('res_policy_number', data.insurance_puc_details.policy_number);
+            renderDateBadge('res_policy_expiry', data.insurance_puc_details.policy_expiry);
+            setText('res_puc_number', data.insurance_puc_details.puc_number);
+            renderDateBadge('res_puc_expiry', data.insurance_puc_details.puc_expiry);
 
-            // Insurance
-            setText('res_insurance_company', data.insurance_details.company_name);
-            setText('res_policy_number', data.insurance_details.policy_number);
-            renderDateWithHighlight('res_policy_expiry', data.insurance_details.policy_expiry);
-            setText('res_prev_ncb', data.insurance_details.prev_ncb);
-
-            // Box 9: Catch-all Additional Specs (Strictly non-standard attributes)
+            // Box 8: Additional Details (Catch-All)
             const specsGrid = document.getElementById('additionalSpecsGrid');
             specsGrid.innerHTML = '';
             const addSpecs = data.additional_specs;
@@ -395,13 +367,13 @@
             }
         }
 
-        function renderDateWithHighlight(elementId, dateStr) {
+        function renderDateBadge(elementId, dateStr) {
             const el = document.getElementById(elementId);
             if (!el) return;
-            el.innerText = dateStr;
 
             if (!dateStr || dateStr === 'N/A') {
-                el.className = "font-bold text-slate-700";
+                el.innerText = 'N/A';
+                el.className = "font-semibold text-slate-700";
                 return;
             }
 
@@ -409,12 +381,13 @@
             if (!isNaN(parsedDate)) {
                 const now = new Date().getTime();
                 if (parsedDate < now) {
-                    el.className = "font-bold text-red-600";
+                    el.innerHTML = `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">${dateStr} (Expired)</span>`;
                 } else {
-                    el.className = "font-bold text-emerald-600";
+                    el.innerHTML = `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">${dateStr} (Active)</span>`;
                 }
             } else {
-                el.className = "font-bold text-slate-700";
+                el.innerText = dateStr;
+                el.className = "font-semibold text-slate-700";
             }
         }
 
@@ -430,7 +403,6 @@
             
             const bar = document.getElementById('cooldownBar');
             bar.style.width = '100%';
-            
             document.getElementById('cooldownSeconds').innerText = remaining;
 
             const interval = setInterval(() => {
