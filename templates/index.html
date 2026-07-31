@@ -1,544 +1,166 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elite Vehicle RTO Desk • Digital Registration Certificate</title>
-    <!-- Tailwind CSS CDN -->
+    <title>Parivahan Service - Vehicle Verification</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        glass: {
-                            base: 'rgba(15, 23, 42, 0.75)',
-                            card: 'rgba(30, 41, 59, 0.70)',
-                            border: 'rgba(255, 255, 255, 0.12)',
-                            accent: '#3b82f6'
-                        }
-                    },
-                    animation: {
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'glow': 'glow 2s ease-in-out infinite alternate',
-                    },
-                    keyframes: {
-                        glow: {
-                            '0%': { 'box-shadow': '0 0 15px rgba(59, 130, 246, 0.3)' },
-                            '100%': { 'box-shadow': '0 0 30px rgba(59, 130, 246, 0.7)' }
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        /* CSS Glassmorphism Utilities */
-        .glass-panel {
-            background: rgba(15, 23, 42, 0.75);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .glass-card {
-            background: rgba(30, 41, 59, 0.6);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .glass-card:hover {
-            border-color: rgba(59, 130, 246, 0.4);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-        }
-        /* Metallic Chrome RC Plate */
-        .chrome-plate {
-            background: linear-gradient(135deg, #e2e8f0 0%, #ffffff 50%, #94a3b8 100%);
-            box-shadow: inset 0 0 4px rgba(0,0,0,0.4), 0 4px 12px rgba(0,0,0,0.5);
-            border: 2px solid #64748b;
-        }
-        /* Circular Timer Progress */
-        .circle-svg {
-            transform: rotate(-90deg);
-        }
-        .circle-progress {
-            stroke-dasharray: 100;
-            stroke-dashoffset: 0;
-            transition: stroke-dashoffset 1s linear;
-        }
-    </style>
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between font-sans selection:bg-blue-500 selection:text-white relative overflow-x-hidden">
+<body class="bg-slate-100 min-h-screen text-slate-800 font-sans antialiased">
 
-    <!-- Ambient Glowing Background Spheres -->
-    <div class="fixed top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] pointer-events-none"></div>
-    <div class="fixed bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[120px] pointer-events-none"></div>
-
-    <div class="container mx-auto px-4 py-8 max-w-6xl relative z-10 flex-grow">
-
-        <!-- Top Header Navigation -->
-        <header class="flex justify-between items-center mb-8 pb-4 border-b border-slate-800">
-            <div class="flex items-center space-x-3">
-                <div class="p-2.5 bg-blue-600/20 border border-blue-500/30 rounded-xl text-blue-400">
-                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                    </svg>
+    <!-- Header Navigation -->
+    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <a href="/" class="flex items-center gap-3">
+                <div class="bg-blue-600 p-2.5 rounded-xl shadow-lg shadow-blue-500/30">
+                    <i data-lucide="shield-check" class="w-6 h-6 text-white"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold tracking-wide text-white">ELITE VEHICLE DESK</h1>
-                    <p class="text-xs text-slate-400">Official RTO Registration Certificate Aggregator</p>
+                    <h1 class="font-bold text-xl tracking-tight text-white">Parivahan Service</h1>
+                    <p class="text-xs text-slate-400">Official RC & Vehicle Verification Portal</p>
                 </div>
-            </div>
-            <div class="hidden sm:flex items-center space-x-2 bg-slate-900/80 px-3 py-1.5 rounded-full border border-slate-800">
-                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span class="text-xs font-medium text-slate-300">FastAPI Live Engine</span>
-            </div>
-        </header>
+            </a>
 
-        <!-- Search Bar Section -->
-        <section class="max-w-2xl mx-auto mb-10">
-            <form id="searchForm" method="POST" action="/" class="glass-panel p-2 sm:p-3 rounded-2xl flex flex-col sm:flex-row items-center gap-2 shadow-2xl">
-                <div class="relative flex-grow w-full">
-                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                        </svg>
-                    </div>
-                    <input type="text" name="vehicle_no" id="vehicleInput" required placeholder="Enter Reg No (e.g., MH12PQ3456)" 
-                           value="{{ searched_query if searched_query else '' }}"
-                           class="w-full pl-11 pr-4 py-3.5 bg-slate-900/60 text-white font-mono text-lg uppercase tracking-wider rounded-xl border border-slate-700/60 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder:text-slate-500 placeholder:normal-case placeholder:text-base">
+            <!-- Search Form -->
+            <form action="/search" method="get" class="w-full md:w-auto flex items-center gap-2">
+                <div class="relative w-full md:w-80">
+                    <i data-lucide="car" class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" name="vehicle_no" placeholder="Vehicle No (e.g. DL4SDH5925)" 
+                        value="{{ vehicle_data.searched_vehicle_no if vehicle_data else '' }}"
+                        class="w-full pl-11 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase tracking-wider text-sm font-semibold transition-all" required />
                 </div>
-                
-                <button type="submit" id="submitBtn" class="w-full sm:w-auto px-7 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg shadow-blue-600/30 whitespace-nowrap">
-                    <span id="btnText">Fetch RC Details</span>
-                    <div id="btnTimer" class="hidden items-center space-x-2">
-                        <svg class="w-5 h-5 circle-svg" viewBox="0 0 36 36">
-                            <path class="text-slate-600" stroke-width="4" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                            <path id="timerCircle" class="text-white circle-progress" stroke-dasharray="100, 100" stroke-width="4" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                        </svg>
-                        <span id="cooldownSeconds">7s</span>
-                    </div>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md hover:shadow-blue-500/20 active:scale-95">
+                    <span>Search</span>
+                    <i data-lucide="search" class="w-4 h-4"></i>
                 </button>
             </form>
-        </section>
+        </div>
+    </header>
 
-        <!-- DASHBOARD DISPLAY -->
-        {% if searched %}
-            {% if error_message %}
-                <!-- ANIMATED ERROR / NOT FOUND STATE -->
-                <div class="max-w-xl mx-auto glass-panel border border-rose-500/30 rounded-2xl p-8 text-center shadow-2xl relative overflow-hidden">
-                    <div class="inline-flex p-4 bg-rose-500/10 border border-rose-500/20 rounded-full text-rose-400 mb-4 animate-bounce">
-                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                        </svg>
-                    </div>
-                    <h2 class="text-2xl font-bold text-white mb-2">Details Not Found</h2>
-                    <p class="text-slate-400 text-sm leading-relaxed max-w-md mx-auto">
-                        Unable to retrieve vehicle details from RTO databases. Please verify the vehicle registration number.
-                    </p>
-                </div>
-            {% elif vehicle_data %}
-                <!-- ORIGINAL PHYSICAL RC CARD DASHBOARD GRID -->
-                <div class="glass-panel p-6 sm:p-8 rounded-3xl shadow-2xl space-y-8 border border-slate-700/50">
-                    
-                    <!-- SECTION 1: Primary Vehicle Identity Badge (HEADLINE CARD) -->
-                    <div class="glass-card p-6 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-6 border-l-4 border-l-blue-500">
-                        <div class="space-y-2 text-center md:text-left">
-                            <div class="flex flex-wrap items-center justify-center md:justify-start gap-2">
-                                <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-wide">
-                                    {{ vehicle_data.maker }} {{ vehicle_data.model }}
-                                </h2>
-                                {% if vehicle_data.variant != 'N/A' %}
-                                    <span class="text-xs px-2.5 py-1 bg-slate-800 text-slate-300 rounded-md border border-slate-700 font-mono">
-                                        {{ vehicle_data.variant }}
-                                    </span>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="flex flex-wrap items-center justify-center md:justify-start gap-3 pt-1">
-                                <!-- Fuel Badge -->
-                                <span class="inline-flex items-center space-x-1.5 px-3 py-1 bg-blue-500/10 border border-blue-500/30 text-blue-400 rounded-full text-xs font-semibold">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                                    </svg>
-                                    <span>{{ vehicle_data.fuel_type }}</span>
-                                </span>
-                                
-                                <!-- Norms Badge -->
-                                <span class="inline-flex items-center px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-full text-xs font-semibold">
-                                    {{ vehicle_data.norms }}
-                                </span>
-                            </div>
-                        </div>
+    <!-- Main Container -->
+    <main class="max-w-6xl mx-auto px-4 py-8">
 
-                        <!-- Metallic Chrome Registration Badge -->
-                        <div class="chrome-plate px-6 py-3 rounded-xl text-slate-900 font-mono font-black text-2xl sm:text-3xl tracking-widest text-center shadow-2xl min-w-[220px]">
-                            <div class="text-[9px] tracking-normal font-sans text-slate-700 uppercase -mb-1 font-bold">INDIA</div>
-                            {{ vehicle_data.regn_no }}
-                        </div>
-                    </div>
-
-                    <!-- 7 STRICT GRID SECTIONS -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-                        <!-- SECTION 2: Owner Profile -->
-                        <div class="glass-card p-5 rounded-2xl space-y-4">
-                            <div class="flex items-center space-x-2 border-b border-slate-700/60 pb-3">
-                                <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                                </svg>
-                                <h3 class="font-bold text-white text-sm uppercase tracking-wider">2. Owner Profile</h3>
-                            </div>
-                            <div class="space-y-2.5 text-xs">
-                                <div>
-                                    <p class="text-slate-400">Registered Owner</p>
-                                    <p class="font-semibold text-slate-100 text-sm">{{ vehicle_data.owner_name }}</p>
-                                </div>
-                                <div>
-                                    <p class="text-slate-400">Father / Husband Name</p>
-                                    <p class="font-medium text-slate-200">{{ vehicle_data.father_name }}</p>
-                                </div>
-                                <div class="grid grid-cols-2 gap-2 pt-1">
-                                    <div>
-                                        <p class="text-slate-400">Owner Serial No</p>
-                                        <p class="font-mono font-semibold text-blue-400">{{ vehicle_data.owner_serial }}</p>
-                                    </div>
-                                    <div>
-                                        <p class="text-slate-400">Nominee</p>
-                                        <p class="font-medium text-slate-200">{{ vehicle_data.nominee }}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- SECTION 3: Address Details -->
-                        <div class="glass-card p-5 rounded-2xl space-y-4 md:col-span-1 lg:col-span-2">
-                            <div class="flex items-center space-x-2 border-b border-slate-700/60 pb-3">
-                                <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                </svg>
-                                <h3 class="font-bold text-white text-sm uppercase tracking-wider">3. Address Details</h3>
-                            </div>
-                            <div class="space-y-3 text-xs">
-                                <div>
-                                    <p class="text-slate-400 mb-1">Primary Registered Address</p>
-                                    <p class="font-medium text-slate-200 bg-slate-900/50 p-3 rounded-xl border border-slate-800 leading-relaxed">
-                                        {{ vehicle_data.main_address }}
-                                    </p>
-                                </div>
-
-                                {% if vehicle_data.all_addresses and vehicle_data.all_addresses|length > 1 %}
-                                    <div>
-                                        <button onclick="toggleAccordion('addressAccordion')" class="text-xs font-semibold text-blue-400 hover:text-blue-300 transition-colors flex items-center space-x-1 focus:outline-none">
-                                            <span>View Alternate / Previous Addresses ({{ vehicle_data.all_addresses|length - 1 }})</span>
-                                            <svg id="accordionArrow" class="w-4 h-4 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                            </svg>
-                                        </button>
-                                        <div id="addressAccordion" class="hidden mt-2 space-y-2 pl-2 border-l-2 border-slate-800">
-                                            {% for addr in vehicle_data.all_addresses[1:] %}
-                                                <p class="text-slate-400 bg-slate-900/30 p-2 rounded-lg border border-slate-800/60">
-                                                    {{ addr }}
-                                                </p>
-                                            {% endfor %}
-                                        </div>
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <!-- SECTION 4: Technical Specifications -->
-                        <div class="glass-card p-5 rounded-2xl space-y-4">
-                            <div class="flex items-center space-x-2 border-b border-slate-700/60 pb-3">
-                                <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                                </svg>
-                                <h3 class="font-bold text-white text-sm uppercase tracking-wider">4. Technical Specs</h3>
-                            </div>
-                            <div class="space-y-2.5 text-xs">
-                                <div>
-                                    <p class="text-slate-400">Chassis Number</p>
-                                    <p class="font-mono font-semibold text-slate-100 tracking-wider">{{ vehicle_data.chassis_no }}</p>
-                                </div>
-                                <div>
-                                    <p class="text-slate-400">Engine Number</p>
-                                    <p class="font-mono font-semibold text-slate-100 tracking-wider">{{ vehicle_data.engine_no }}</p>
-                                </div>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <div>
-                                        <p class="text-slate-400">Cubic Capacity (CC)</p>
-                                        <p class="font-medium text-slate-200">{{ vehicle_data.engine_cc }}</p>
-                                    </div>
-                                    <div>
-                                        <p class="text-slate-400">Unladen Weight</p>
-                                        <p class="font-medium text-slate-200">{{ vehicle_data.unladen_weight }}</p>
-                                    </div>
-                                </div>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <div>
-                                        <p class="text-slate-400">Vehicle Color</p>
-                                        <p class="font-medium text-slate-200">{{ vehicle_data.color }}</p>
-                                    </div>
-                                    <div>
-                                        <p class="text-slate-400">Vehicle Class</p>
-                                        <p class="font-medium text-slate-200">{{ vehicle_data.vehicle_class }}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- SECTION 5: Registration & RTO Compliance -->
-                        <div class="glass-card p-5 rounded-2xl space-y-4">
-                            <div class="flex items-center space-x-2 border-b border-slate-700/60 pb-3">
-                                <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                </svg>
-                                <h3 class="font-bold text-white text-sm uppercase tracking-wider">5. RTO Compliance</h3>
-                            </div>
-                            <div class="space-y-2.5 text-xs">
-                                <div>
-                                    <p class="text-slate-400">Registering Authority (RTO)</p>
-                                    <p class="font-medium text-slate-100">{{ vehicle_data.rto_name }}</p>
-                                </div>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <div>
-                                        <p class="text-slate-400">Registration Date</p>
-                                        <p class="font-medium text-slate-200">{{ vehicle_data.reg_date }}</p>
-                                    </div>
-                                    <div>
-                                        <p class="text-slate-400">Mfg Month/Yr</p>
-                                        <p class="font-medium text-slate-200">{{ vehicle_data.mfg_date }}</p>
-                                    </div>
-                                </div>
-                                
-                                <!-- RC Validity Expiry with Status Badge -->
-                                <div>
-                                    <p class="text-slate-400">RC Fitness Expiry</p>
-                                    <div class="flex items-center justify-between mt-0.5">
-                                        <span class="font-medium text-slate-200">{{ vehicle_data.rc_expiry }}</span>
-                                        {% set rc_status = vehicle_data.rc_expiry | expiry_status %}
-                                        {% if rc_status == 'ACTIVE' %}
-                                            <span class="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded text-[10px] font-bold">ACTIVE</span>
-                                        {% elif rc_status == 'EXPIRED' %}
-                                            <span class="px-2 py-0.5 bg-rose-500/10 border border-rose-500/30 text-rose-400 rounded text-[10px] font-bold">EXPIRED</span>
-                                        {% else %}
-                                            <span class="px-2 py-0.5 bg-slate-800 text-slate-400 rounded text-[10px] font-bold">N/A</span>
-                                        {% endif %}
-                                    </div>
-                                </div>
-
-                                <!-- Tax Validity -->
-                                <div>
-                                    <p class="text-slate-400">Tax Valid Upto</p>
-                                    <div class="flex items-center justify-between mt-0.5">
-                                        <span class="font-medium text-slate-200">{{ vehicle_data.tax_upto }}</span>
-                                        {% set tax_status = vehicle_data.tax_upto | expiry_status %}
-                                        {% if tax_status == 'ACTIVE' %}
-                                            <span class="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded text-[10px] font-bold">VALID</span>
-                                        {% elif tax_status == 'EXPIRED' %}
-                                            <span class="px-2 py-0.5 bg-rose-500/10 border border-rose-500/30 text-rose-400 rounded text-[10px] font-bold">EXPIRED</span>
-                                        {% else %}
-                                            <span class="px-2 py-0.5 bg-slate-800 text-slate-400 rounded text-[10px] font-bold">N/A</span>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- SECTION 6: Vehicle Financing / Hypothecation -->
-                        <div class="glass-card p-5 rounded-2xl space-y-4">
-                            <div class="flex items-center space-x-2 border-b border-slate-700/60 pb-3">
-                                <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                                </svg>
-                                <h3 class="font-bold text-white text-sm uppercase tracking-wider">6. Financing</h3>
-                            </div>
-                            <div class="space-y-3 text-xs">
-                                <div>
-                                    <p class="text-slate-400 mb-1">Hypothecation Status</p>
-                                    {% if vehicle_data.financer != 'N/A' %}
-                                        <span class="px-2.5 py-1 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-md font-semibold text-[11px] inline-block">
-                                            FINANCED
-                                        </span>
-                                    {% else %}
-                                        <span class="px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-md font-semibold text-[11px] inline-block">
-                                            NO HYPOTHECATION (UNFINANCED)
-                                        </span>
-                                    {% endif %}
-                                </div>
-                                <div>
-                                    <p class="text-slate-400">Financer Name</p>
-                                    <p class="font-medium text-slate-100 text-sm mt-0.5">{{ vehicle_data.financer }}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- SECTION 7: PUC Compliance -->
-                        <div class="glass-card p-5 rounded-2xl space-y-4">
-                            <div class="flex items-center space-x-2 border-b border-slate-700/60 pb-3">
-                                <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                                <h3 class="font-bold text-white text-sm uppercase tracking-wider">7. PUC Compliance</h3>
-                            </div>
-                            <div class="space-y-2.5 text-xs">
-                                <div>
-                                    <p class="text-slate-400">PUC Certificate No</p>
-                                    <p class="font-mono font-medium text-slate-200 mt-0.5">{{ vehicle_data.puc_number }}</p>
-                                </div>
-                                <div>
-                                    <p class="text-slate-400">PUC Validity Expiry</p>
-                                    <div class="flex items-center justify-between mt-1">
-                                        <span class="font-medium text-slate-100">{{ vehicle_data.puc_expiry }}</span>
-                                        {% set puc_status = vehicle_data.puc_expiry | expiry_status %}
-                                        {% if puc_status == 'ACTIVE' %}
-                                            <span class="px-2.5 py-0.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-md font-bold text-[10px]">ACTIVE</span>
-                                        {% elif puc_status == 'EXPIRED' %}
-                                            <span class="px-2.5 py-0.5 bg-rose-500/10 border border-rose-500/30 text-rose-400 rounded-md font-bold text-[10px]">EXPIRED</span>
-                                        {% else %}
-                                            <span class="px-2.5 py-0.5 bg-slate-800 text-slate-400 rounded-md font-bold text-[10px]">N/A</span>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- SECTION 8: Insurance Coverage -->
-                        <div class="glass-card p-5 rounded-2xl space-y-4">
-                            <div class="flex items-center space-x-2 border-b border-slate-700/60 pb-3">
-                                <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                                </svg>
-                                <h3 class="font-bold text-white text-sm uppercase tracking-wider">8. Insurance Coverage</h3>
-                            </div>
-                            <div class="space-y-2.5 text-xs">
-                                <div>
-                                    <p class="text-slate-400">Insurance Company</p>
-                                    <p class="font-medium text-slate-100 mt-0.5">{{ vehicle_data.insurance_company }}</p>
-                                </div>
-                                <div>
-                                    <p class="text-slate-400">Policy Number</p>
-                                    <p class="font-mono text-slate-200 mt-0.5">{{ vehicle_data.policy_no }}</p>
-                                </div>
-                                <div>
-                                    <p class="text-slate-400">Insurance Valid Upto</p>
-                                    <div class="flex items-center justify-between mt-1">
-                                        <span class="font-medium text-slate-100">{{ vehicle_data.insurance_expiry }}</span>
-                                        {% set ins_status = vehicle_data.insurance_expiry | expiry_status %}
-                                        {% if ins_status == 'ACTIVE' %}
-                                            <span class="px-2.5 py-0.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-md font-bold text-[10px]">ACTIVE</span>
-                                        {% elif ins_status == 'EXPIRED' %}
-                                            <span class="px-2.5 py-0.5 bg-rose-500/10 border border-rose-500/30 text-rose-400 rounded-md font-bold text-[10px]">EXPIRED</span>
-                                        {% else %}
-                                            <span class="px-2.5 py-0.5 bg-slate-800 text-slate-400 rounded-md font-bold text-[10px]">N/A</span>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <!-- RAW API INSPECTOR ACCORDION -->
-                    {% if raw_json %}
-                        <div class="pt-6 border-t border-slate-800">
-                            <button onclick="toggleAccordion('rawJsonAccordion')" class="w-full glass-card p-4 rounded-xl flex justify-between items-center text-xs font-mono text-slate-400 hover:text-white transition-colors">
-                                <span class="flex items-center space-x-2">
-                                    <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
-                                    </svg>
-                                    <span>Developer Tools: View Raw Aggregated API Payload</span>
-                                </span>
-                                <span>+ Expand JSON</span>
-                            </button>
-                            <div id="rawJsonAccordion" class="hidden mt-3 p-4 bg-slate-950 rounded-xl border border-slate-800 font-mono text-[11px] text-emerald-400 overflow-x-auto max-h-96">
-                                <pre>{{ raw_json | tojson(indent=2) }}</pre>
-                            </div>
-                        </div>
-                    {% endif %}
-
-                </div>
-            {% endif %}
-        {% endif %}
-
-    </div>
-
-    <!-- MODERN GLASSMORPHIC FOOTER -->
-    <footer class="mt-12 border-t border-slate-800/80 bg-slate-950/80 backdrop-blur-md py-6 relative z-10">
-        <div class="container mx-auto px-4 max-w-6xl flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-400">
-            <div>
-                © 2026 Elite Vehicle Desk • All Rights Reserved
+        {% if not vehicle_data %}
+        <!-- Welcome Prompt -->
+        <div class="text-center py-16 space-y-4">
+            <div class="inline-flex p-4 bg-blue-50 rounded-2xl text-blue-600 mb-2">
+                <i data-lucide="file-search" class="w-12 h-12"></i>
             </div>
-            <div class="font-medium text-slate-300">
-                Designed & Developed with <span class="text-rose-500">❤️</span> by Vikas Mishra
+            <h2 class="text-2xl font-bold text-slate-900">Enter a Vehicle Number to Fetch RC Details</h2>
+            <p class="text-slate-500 max-w-md mx-auto text-sm">Our parallel engine aggregates vehicle registration, insurance, and compliance status across multiple APIs instantly.</p>
+        </div>
+        {% else %}
+
+        {% set v = vehicle_data.vehicle_details %}
+        {% set c = vehicle_data.compliance_details %}
+
+        <!-- RC Details Display -->
+        <div class="space-y-6">
+
+            <!-- Card Header Status -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div class="space-y-1">
+                    <div class="flex items-center gap-3">
+                        <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">{{ v.registration_number }}</h2>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> {{ v.rc_status }}
+                        </span>
+                    </div>
+                    <p class="text-slate-600 font-medium text-sm">{{ v.vehicle_model }}</p>
+                </div>
+                <div class="text-left md:text-right bg-slate-50 p-3 px-4 rounded-xl border border-slate-100">
+                    <p class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Registered RTO</p>
+                    <p class="text-slate-800 font-bold text-sm">{{ v.rto_authority }}</p>
+                </div>
             </div>
-            <div class="flex items-center space-x-2 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full text-emerald-400 font-medium">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span>All Systems Operational</span>
+
+            <!-- Main Info Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- Vehicle & Owner Information -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 space-y-4">
+                    <div class="flex items-center gap-2 pb-3 border-b border-slate-100 text-blue-600">
+                        <i data-lucide="user" class="w-5 h-5"></i>
+                        <h3 class="font-bold text-slate-900">Owner & Vehicle Info</h3>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <p class="text-xs text-slate-500">Owner Name</p>
+                            <p class="font-semibold text-slate-800">{{ v.owner_name }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500">Father's Name</p>
+                            <p class="font-semibold text-slate-800">{{ v.father_name }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500">Manufacturer</p>
+                            <p class="font-semibold text-slate-800">{{ v.manufacturer }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500">Fuel Type</p>
+                            <p class="font-semibold text-slate-800">{{ v.fuel_type }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500">Chassis Number</p>
+                            <p class="font-mono font-medium text-slate-800">{{ v.chassis_number }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500">Engine Number</p>
+                            <p class="font-mono font-medium text-slate-800">{{ v.engine_number }}</p>
+                        </div>
+                        <div class="col-span-2 pt-2 border-t border-slate-50">
+                            <p class="text-xs text-slate-500">Registered Address</p>
+                            <p class="font-medium text-slate-700 leading-snug mt-0.5">{{ v.registered_address }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Compliance & Insurance Status -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 space-y-4">
+                    <div class="flex items-center gap-2 pb-3 border-b border-slate-100 text-blue-600">
+                        <i data-lucide="file-check-2" class="w-5 h-5"></i>
+                        <h3 class="font-bold text-slate-900">Compliance & Insurance</h3>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <p class="text-xs text-slate-500">Registration Date</p>
+                            <p class="font-semibold text-slate-800">{{ v.registration_date }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500">RC Expiry Date</p>
+                            <p class="font-semibold text-slate-800">{{ v.rc_expiry_date }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500">Insurance Company</p>
+                            <p class="font-semibold text-slate-800">{{ c.insurance_company }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500">Insurance Expiry</p>
+                            <p class="font-semibold text-slate-800">{{ c.insurance_expiry }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500">PUC Number</p>
+                            <p class="font-mono font-medium text-slate-800">{{ c.puc_number }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500">PUC Valid Upto</p>
+                            <p class="font-semibold text-slate-800">{{ c.puc_expiry }}</p>
+                        </div>
+                        <div class="col-span-2 pt-2 border-t border-slate-50">
+                            <p class="text-xs text-slate-500">Financer / Hypothecation</p>
+                            <p class="font-semibold text-slate-800">{{ c.financer }}</p>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
-    </footer>
+        {% endif %}
+    </main>
 
-    <!-- INTERACTIVE JAVASCRIPT ENGINE -->
     <script>
-        // Anti-Spam Timer Logic (7 Seconds Cooldown)
-        const searchForm = document.getElementById('searchForm');
-        const submitBtn = document.getElementById('submitBtn');
-        const btnText = document.getElementById('btnText');
-        const btnTimer = document.getElementById('btnTimer');
-        const timerCircle = document.getElementById('timerCircle');
-        const cooldownSeconds = document.getElementById('cooldownSeconds');
-
-        if (searchForm) {
-            searchForm.addEventListener('submit', function (e) {
-                if (submitBtn.disabled) {
-                    e.preventDefault();
-                    return;
-                }
-
-                // Trigger cooldown timer immediately on form submit
-                let timeLeft = 7;
-                submitBtn.disabled = true;
-                submitBtn.classList.add('opacity-80', 'cursor-not-allowed');
-                btnText.classList.add('hidden');
-                btnTimer.classList.remove('hidden');
-                btnTimer.classList.add('flex');
-
-                const interval = setInterval(() => {
-                    timeLeft--;
-                    cooldownSeconds.textContent = timeLeft + 's';
-                    
-                    // Update stroke dashoffset
-                    const offset = 100 - ((7 - timeLeft) / 7) * 100;
-                    timerCircle.style.strokeDashoffset = offset;
-
-                    if (timeLeft <= 0) {
-                        clearInterval(interval);
-                        submitBtn.disabled = false;
-                        submitBtn.classList.remove('opacity-80', 'cursor-not-allowed');
-                        btnText.classList.remove('hidden');
-                        btnTimer.classList.add('hidden');
-                        btnTimer.classList.remove('flex');
-                        timerCircle.style.strokeDashoffset = 0;
-                    }
-                }, 1000);
-            });
-        }
-
-        // Generic Accordion Toggle Function
-        function toggleAccordion(elementId) {
-            const element = document.getElementById(elementId);
-            const arrow = document.getElementById('accordionArrow');
-            if (element) {
-                element.classList.toggle('hidden');
-                if (arrow) {
-                    arrow.classList.toggle('rotate-180');
-                }
-            }
-        }
+        lucide.createIcons();
     </script>
 </body>
 </html>
