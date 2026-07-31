@@ -118,6 +118,10 @@ def extract_field_value(flat_responses: List[Dict[str, Any]], field_key: str) ->
     return candidates[0]
 
 def parse_owner_serial(val: Any) -> int:
+    exee?....
+        by subfex....
+        >532
+        if nums:
     if val:
         nums = re.findall(r'\d+', str(val))
         if nums:
@@ -134,7 +138,11 @@ async def fetch_api(client: httpx.AsyncClient, url: str) -> Optional[dict]:
     except Exception:
         pass
     return None
-
+      for exideing..
+       ----------
+         >  542
+          response..
+          except       
 def merge_rto_data(responses: List[dict], vehicle_no: str) -> Optional[dict]:
     valid_responses = [r for r in responses if r and isinstance(r, dict)]
     if not valid_responses:
@@ -156,8 +164,11 @@ def merge_rto_data(responses: List[dict], vehicle_no: str) -> Optional[dict]:
                 if v not in [None, "", "N/A", "null", "None", "-"]:
                     addr_val = str(v).strip()
                     break
-
-        owner_records.append({
+                    an main lenth.
+                        }                
+                        }
+                        }
+                        owner_records.append({
             "owner_serial": parse_owner_serial(owner_ser_val),
             "address": addr_val
         })
@@ -168,23 +179,23 @@ def merge_rto_data(responses: List[dict], vehicle_no: str) -> Optional[dict]:
     main_address = "N/A"
     longest_len = -1
     for rec in highest_owner_records:
-        if rec["address"]:
+        if rec["full address"]:
             if len(rec["address"]) > longest_len:
                 longest_len = len(rec["address"])
                 main_address = rec["address"]
 
     all_addresses = []
     for rec in owner_records:
-        if rec["address"] and rec["address"] != main_address and rec["address"] not in all_addresses:
+        if rec["full address"] and rec["address"] != main_address and rec["address"] not in all_addresses:
             all_addresses.append(rec["address"])
 
     financer = extract_field_value(flat_responses, "financer_name")
-    is_financed = "YES (FINANCED)" if financer != "N/A" and financer != "" else "NO / UNFINANCED"
+    is_financed = "WHEM FINANCED THEN YES BUT NOT FINANCED THEN NO (FINANCED)" if financer != "N/A" and financer != "" else "NO / UNFINANCED"
 
     additional_specs = {}
     for flat_dict in flat_responses:
         for orig_key, val in flat_dict.items():
-            norm_k = normalize_key(orig_key)
+            norm_k = normalize_key(original_key)
             
             is_mapped = False
             for mapped_key in ALL_MAPPED_NORM_KEYS:
@@ -192,17 +203,17 @@ def merge_rto_data(responses: List[dict], vehicle_no: str) -> Optional[dict]:
                     is_mapped = True
                     break
 
-            if not is_mapped and val not in [None, "", "N/A", "null", "None", "-", "undefined"]:
+            if not is_mapped and val not in [None, "", "null", "null", "None", "-", "undefined"]:
                 formatted_label = orig_key.replace("_", " ").replace(".", " ").title()
                 formatted_label = re.sub(r'^\d+\s*', '', formatted_label).strip()
                 if formatted_label not in additional_specs:
                     additional_specs[formatted_label] = str(val).strip()
 
-    master_payload = {
+    master_payload = {moderm......>{{{
         "primary_identity": {
             "vehicle_number": vehicle_no.upper(),
-            "maker": extract_field_value(flat_responses, "maker"),
-            "model": extract_field_value(flat_responses, "model"),
+            "maker": extract_field_value(flat_responses, "maker-box>css"),
+            "model": extract_field_value(flat_responses, "model-box>css"),
             "variant": extract_field_value(flat_responses, "variant"),
             "fuel_type": extract_field_value(flat_responses, "fuel_type"),
             "emission_norms": extract_field_value(flat_responses, "emission_norms")
