@@ -9,15 +9,15 @@ from fastapi import FastAPI, Request, Query
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import Limiter
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 load_dotenv()
 
-# Initialize Rate Limiter
+# Rate Limiter setup: 5 requests per minute per IP
 limiter = Limiter(key_func=get_remote_address)
-app = FastAPI(title="Elite Vehicle RTO Engine", version="2.0.0")
+app = FastAPI(title="Elite Vehicle Desk Engine", version="2.0.0")
 app.state.limiter = limiter
 
 @app.exception_handler(RateLimitExceeded)
@@ -26,13 +26,13 @@ async def custom_rate_limit_handler(request: Request, exc: RateLimitExceeded):
         status_code=429,
         content={
             "status": "error",
-            "message": "Rate limit exceeded. You can only make 5 requests per minute."
+            "message": "Too Many Requests. You can only make 5 requests per minute."
         }
     )
 
 templates = Jinja2Templates(directory="templates")
 
-# Default API URL Endpoints
+# Default API endpoints with fallback handling
 DEFAULT_URL_1 = "https://unsalubriously-unfragrant-rosetta.ngrok-free.dev/api/vehicle-details-only?regn_no={VEHICLE_NO}"
 DEFAULT_URL_2 = "https://randkikichut.vercel.app/?vehicle_number={VEHICLE_NO}"
 DEFAULT_URL_3 = "https://cjpen.vercel.app/vehicle/{VEHICLE_NO}"
@@ -52,7 +52,7 @@ def get_api_urls(vehicle_no: str) -> List[str]:
         u4.format(VEHICLE_NO=v_no),
     ]
 
-# Normalization & Key Extraction Utilities
+# Normalization & Key Standardization Pipeline
 def normalize_key(key: str) -> str:
     """Strips spaces and special characters to convert keys into clean snake_case format."""
     s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', str(key))
@@ -68,7 +68,7 @@ ALIAS_MAP = {
     "fuel_type": ["fuel_type", "fuel", "fuel_desc", "fuel_type_descr"],
     "emission_norms": ["emission_norms", "norms_type", "norms", "norms_desc"],
     "owner_name": ["owner_name", "owner", "registered_owner_name", "owner_name_vahan", "current_owner"],
-    "father_name": ["father_name", "father_husband_name", "f_name", "care_of", "husband_name"],
+    "father_name": ["father_name", "fatherName", "father_husband_name", "f_name", "care_of", "husband_name"],
     "owner_serial": ["owner_serial", "owner_count", "owner_number", "owner_seq", "owner_sr"],
     "nominee": ["nominee", "nominee_name", "nominee_details"],
     "address": ["present_address", "permanent_address", "address", "owner_address", "full_address", "main_address"],
@@ -92,14 +92,14 @@ ALIAS_MAP = {
     "prev_ncb": ["prev_ncb", "ncb", "no_claim_bonus"]
 }
 
-# Reverse Mapping Set to isolate non-standard keys for Box 9
+# Aggregate set of mapped keys to prevent duplicate routing into Box 9
 ALL_MAPPED_NORM_KEYS = set()
 for aliases in ALIAS_MAP.values():
     for alias in aliases:
         ALL_MAPPED_NORM_KEYS.add(normalize_key(alias))
 
 def extract_flat_dict(raw_json: Any, parent_key: str = '') -> Dict[str, Any]:
-    """Recursively flattens nested dictionaries while preserving path contexts."""
+    """Flattens nested JSON hierarchies safely."""
     items: List[tuple] = []
     if isinstance(raw_json, dict):
         for k, v in raw_json.items():
@@ -115,7 +115,7 @@ def extract_flat_dict(raw_json: Any, parent_key: str = '') -> Dict[str, Any]:
     return dict(items)
 
 def extract_field_value(flat_responses: List[Dict[str, Any]], field_key: str) -> str:
-    """Searches across all flattened responses for the best non-null value matching aliases."""
+    """Finds non-null values matching aliases and selects the longest, richest string."""
     aliases = ALIAS_MAP.get(field_key, [])
     candidates = []
 
@@ -123,13 +123,13 @@ def extract_field_value(flat_responses: List[Dict[str, Any]], field_key: str) ->
         for orig_key, val in flat_dict.items():
             norm_k = normalize_key(orig_key)
             if any(norm_k == normalize_key(alias) or norm_k.endswith(f"_{normalize_key(alias)}") for alias in aliases):
-                if val not in [None, "", "N/A", "null", "None", "-"]:
+                if val not in [None, "", "N/A", "null", "None", "-", "undefined"]:
                     candidates.append(str(val).strip())
 
     if not candidates:
         return "N/A"
 
-    # Deduplication & richness check: select longest non-duplicate string
+    # Deduplicate and prioritize non-empty, rich strings
     candidates = list(dict.fromkeys(candidates))
     candidates.sort(key=len, reverse=True)
     return candidates[0]
@@ -159,7 +159,7 @@ def merge_rto_data(responses: List[dict], vehicle_no: str) -> Optional[dict]:
 
     flat_responses = [extract_flat_dict(resp) for resp in valid_responses]
 
-    # Owner & Address Strategy
+    # Owner & Address Normalization Strategy
     owner_records = []
     for flat_dict in flat_responses:
         owner_ser_val = None
@@ -171,7 +171,7 @@ def merge_rto_data(responses: List[dict], vehicle_no: str) -> Optional[dict]:
         addr_val = None
         for k, v in flat_dict.items():
             if normalize_key(k) in [normalize_key(a) for a in ALIAS_MAP["address"]]:
-                if v not in [None, "", "N/A", "null"]:
+                if v not in [None, "", "N/A", "null", "None", "-"]:
                     addr_val = str(v).strip()
                     break
 
@@ -196,26 +196,24 @@ def merge_rto_data(responses: List[dict], vehicle_no: str) -> Optional[dict]:
         if rec["address"] and rec["address"] != main_address and rec["address"] not in all_addresses:
             all_addresses.append(rec["address"])
 
-    # Extract Primary Fields
+    # Determine Finance Status
     financer = extract_field_value(flat_responses, "financer_name")
     is_financed = "YES (FINANCED)" if financer != "N/A" and financer != "" else "NO / UNFINANCED"
 
-    # Catch-All Box 9 Processing (Strictly Non-Standard Keys Only)
+    # Box 9 Strategy: Strictly Non-Standard Keys Only
     additional_specs = {}
     for flat_dict in flat_responses:
         for orig_key, val in flat_dict.items():
             norm_k = normalize_key(orig_key)
             
-            # Check if key is already handled in Boxes 1 through 8
             is_mapped = False
             for mapped_key in ALL_MAPPED_NORM_KEYS:
                 if norm_k == mapped_key or norm_k.endswith(f"_{mapped_key}"):
                     is_mapped = True
                     break
 
-            if not is_mapped and val not in [None, "", "N/A", "null", "None", "-"]:
+            if not is_mapped and val not in [None, "", "N/A", "null", "None", "-", "undefined"]:
                 formatted_label = orig_key.replace("_", " ").replace(".", " ").title()
-                # Clean up nested path prefixes
                 formatted_label = re.sub(r'^\d+\s*', '', formatted_label).strip()
                 if formatted_label not in additional_specs:
                     additional_specs[formatted_label] = str(val).strip()
