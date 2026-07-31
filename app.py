@@ -177,8 +177,9 @@ def normalize_and_aggregate(raw_responses: List[Dict[str, Any]]) -> Dict[str, An
 @limiter.limit("5/minute")
 async def index(request: Request):
     return templates.TemplateResponse(
-        "index.html", 
-        {"request": request, "result": None, "vehicle_no": ""}
+        request=request,
+        name="index.html",
+        context={"result": None, "vehicle_no": ""}
     )
 
 @app.post("/search", response_class=HTMLResponse)
@@ -188,9 +189,9 @@ async def search_vehicle(request: Request, vehicle_number: str = Form(...)):
 
     if not clean_vehicle_no:
         return templates.TemplateResponse(
-            "index.html", 
-            {
-                "request": request,
+            request=request,
+            name="index.html",
+            context={
                 "error": "Please enter a valid vehicle registration number.",
                 "vehicle_no": vehicle_number
             }
@@ -207,18 +208,18 @@ async def search_vehicle(request: Request, vehicle_number: str = Form(...)):
 
     if not valid_responses or not (aggregated_result.get("mapped") or aggregated_result.get("additional")):
         return templates.TemplateResponse(
-            "index.html", 
-            {
-                "request": request,
+            request=request,
+            name="index.html",
+            context={
                 "not_found": True,
                 "vehicle_no": clean_vehicle_no
             }
         )
 
     return templates.TemplateResponse(
-        "index.html", 
-        {
-            "request": request,
+        request=request,
+        name="index.html",
+        context={
             "result": aggregated_result,
             "vehicle_no": clean_vehicle_no
         }
