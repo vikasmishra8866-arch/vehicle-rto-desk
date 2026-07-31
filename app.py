@@ -176,7 +176,10 @@ def normalize_and_aggregate(raw_responses: List[Dict[str, Any]]) -> Dict[str, An
 @app.get("/", response_class=HTMLResponse)
 @limiter.limit("5/minute")
 async def index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request, "result": None, "vehicle_no": ""})
+    return templates.TemplateResponse(
+        "index.html", 
+        {"request": request, "result": None, "vehicle_no": ""}
+    )
 
 @app.post("/search", response_class=HTMLResponse)
 @limiter.limit("5/minute")
@@ -184,11 +187,14 @@ async def search_vehicle(request: Request, vehicle_number: str = Form(...)):
     clean_vehicle_no = re.sub(r'[^A-Za-z0-9]', '', vehicle_number).upper()
 
     if not clean_vehicle_no:
-        return templates.TemplateResponse("index.html", {
-            "request": request,
-            "error": "Please enter a valid vehicle registration number.",
-            "vehicle_no": vehicle_number
-        })
+        return templates.TemplateResponse(
+            "index.html", 
+            {
+                "request": request,
+                "error": "Please enter a valid vehicle registration number.",
+                "vehicle_no": vehicle_number
+            }
+        )
 
     urls = [url.format(VEHICLE_NO=clean_vehicle_no) for url in API_URLS]
 
@@ -200,14 +206,20 @@ async def search_vehicle(request: Request, vehicle_number: str = Form(...)):
     aggregated_result = normalize_and_aggregate(valid_responses)
 
     if not valid_responses or not (aggregated_result.get("mapped") or aggregated_result.get("additional")):
-        return templates.TemplateResponse("index.html", {
-            "request": request,
-            "not_found": True,
-            "vehicle_no": clean_vehicle_no
-        })
+        return templates.TemplateResponse(
+            "index.html", 
+            {
+                "request": request,
+                "not_found": True,
+                "vehicle_no": clean_vehicle_no
+            }
+        )
 
-    return templates.TemplateResponse("index.html", {
-        "request": request,
-        "result": aggregated_result,
-        "vehicle_no": clean_vehicle_no
-    })
+    return templates.TemplateResponse(
+        "index.html", 
+        {
+            "request": request,
+            "result": aggregated_result,
+            "vehicle_no": clean_vehicle_no
+        }
+    )
